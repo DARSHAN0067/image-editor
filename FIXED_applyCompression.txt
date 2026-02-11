@@ -1,0 +1,64 @@
+// FIXED applyCompression function with format conversion support
+
+// Apply compression
+async function applyCompression() {
+    if (!currentFilename) return;
+    
+    const quality = parseInt(qualitySlider.value);
+    const targetSize = document.getElementById('target-size').value;
+    const sizeUnit = document.getElementById('size-unit').value;
+    const outputFormat = document.getElementById('output-format').value;
+    
+    const payload = {
+        filename: currentFilename,
+        quality: quality,
+        outputFormat: outputFormat
+    };
+    
+    // Convert target size to KB
+    if (targetSize && targetSize > 0) {
+        let sizeInKB = parseInt(targetSize);
+        if (sizeUnit === 'MB') {
+            sizeInKB = sizeInKB * 1024; // Convert MB to KB
+        }
+        payload.maxSizeKB = sizeInKB;
+    }
+    
+    showLoading(true);
+    
+    try {
+        const response = await fetch('/compress', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            updatePreview(data.preview, data.info);
+            
+            // Update filename if format changed
+           if (data.newFilename && data.newFilename !== currentFilename) {
+                currentFilename = data.newFilename;
+            }
+            
+            let message = `Converted to ${data.format}!`;
+            if (data.qualityUsed !== quality) {
+                message += ` Quality: ${data.qualityUsed}% (adjusted for target size)`;
+            } else {
+                message += ` Quality: ${quality}%`;
+            }
+            
+            showNotification(message, 'success');
+        } else {
+            showNotification(data.error || 'Compression failed', 'error');
+        }
+    } catch (error) {
+        showNotification('Error: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
+    }
+}

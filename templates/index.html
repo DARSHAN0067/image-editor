@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Professional image compression and editing tool. Optimize, adjust, and crop your images with precision.">
+    <title>Pixelflow — Image Optimization Studio</title>
+
+    <!-- Typography: DM Sans + JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Pixelflow</h1>
+            <p>Optimize, adjust, and crop your images with precision control</p>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <section id="upload-section" class="section">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" x2="12" y1="3" y2="15" />
+                        </svg>
+                    </div>
+                    <p class="upload-text">Drag & drop your image here</p>
+                    <p class="upload-subtext">or</p>
+                    <label for="file-input" class="upload-btn">Choose File</label>
+                    <input type="file" id="file-input" accept="image/jpeg,image/jpg,image/png,image/webp" hidden>
+                    <p class="upload-formats">Supported: JPG, PNG, WEBP (Max 10MB)</p>
+                </div>
+            </section>
+
+            <!-- Editor Section (Hidden initially) -->
+            <section id="editor-section" class="section hidden">
+                <div class="editor-container">
+                    <!-- Preview Panel -->
+                    <div class="preview-panel">
+                        <div class="panel-header">
+                            <h2><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                                    <circle cx="9" cy="9" r="2" />
+                                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                                </svg> Preview</h2>
+                        </div>
+                        <div class="image-preview-container" id="image-preview-container">
+                            <img id="image-preview" src="" alt="Image Preview">
+                            <!-- Crop Overlay (inside preview container) -->
+                            <div id="crop-overlay" class="crop-overlay hidden">
+                                <div id="crop-box" class="crop-box">
+                                    <!-- Corner handles -->
+                                    <div class="crop-handle corner-tl" data-handle="tl"></div>
+                                    <div class="crop-handle corner-tr" data-handle="tr"></div>
+                                    <div class="crop-handle corner-bl" data-handle="bl"></div>
+                                    <div class="crop-handle corner-br" data-handle="br"></div>
+                                    <!-- Edge handles -->
+                                    <div class="crop-handle edge-t" data-handle="t"></div>
+                                    <div class="crop-handle edge-r" data-handle="r"></div>
+                                    <div class="crop-handle edge-b" data-handle="b"></div>
+                                    <div class="crop-handle edge-l" data-handle="l"></div>
+                                    <!-- Crop info display -->
+                                    <div class="crop-info">
+                                        <span id="crop-dimensions-display">800 × 600</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="image-info" id="image-info">
+                            <p><strong>Dimensions:</strong> <span id="info-dimensions">-</span></p>
+                            <p><strong>File Size:</strong> <span id="info-size">-</span></p>
+                            <p><strong>Format:</strong> <span id="info-format">-</span></p>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            <button class="btn btn-download" onclick="downloadImage()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="7 10 12 15 17 10" />
+                                    <line x1="12" x2="12" y1="15" y2="3" />
+                                </svg>
+                                Download Image
+                            </button>
+                            <button class="btn btn-danger" onclick="resetEditor()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                    <path d="M3 3v5h5" />
+                                    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                                    <path d="M16 16h5v5" />
+                                </svg>
+                                New Image
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Controls Panel -->
+                    <div class="controls-panel">
+                        <div class="panel-header">
+                            <h2><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path
+                                        d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg> Edit Tools</h2>
+                        </div>
+
+                        <!-- Tool Selector Cards -->
+                        <div class="tool-selector">
+                            <div class="selector-card active" onclick="showTool('compression')">
+                                <div class="selector-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+                                        <path d="M12 12v9" />
+                                        <path d="m8 17 4 4 4-4" />
+                                    </svg>
+                                </div>
+                                <div class="selector-content">
+                                    <h4>Compression</h4>
+                                    <p>Optimize and convert</p>
+                                </div>
+                            </div>
+                            <div class="selector-card" onclick="showTool('corrections')">
+                                <div class="selector-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+                                        <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+                                        <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+                                        <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+                                        <path
+                                            d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z" />
+                                    </svg>
+                                </div>
+                                <div class="selector-content">
+                                    <h4>Corrections</h4>
+                                    <p>Adjust properties</p>
+                                </div>
+                            </div>
+                            <div class="selector-card" onclick="showTool('crop')">
+                                <div class="selector-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M6 2v14a2 2 0 0 0 2 2h14" />
+                                        <path d="M18 22V8a2 2 0 0 0-2-2H2" />
+                                    </svg>
+                                </div>
+                                <div class="selector-content">
+                                    <h4>Crop</h4>
+                                    <p>Trim and resize</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Compression & Format Card -->
+                        <div class="tool-card" id="tool-compression" data-tool="compression">
+                            <div class="card-header">
+                                <h3><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+                                        <path d="M12 12v9" />
+                                        <path d="m8 17 4 4 4-4" />
+                                    </svg> Compression & Format</h3>
+                                <p class="card-subtitle">Optimize and convert your image</p>
+                            </div>
+                            <div class="card-body">
+                                <!-- Output Format -->
+                                <div class="control-item">
+                                    <label for="output-format">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+                                            <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                                        </svg>
+                                        Output Format
+                                    </label>
+                                    <select id="output-format" class="select-input">
+                                        <option value="JPEG">JPEG (.jpg)</option>
+                                        <option value="PNG">PNG (.png)</option>
+                                        <option value="WEBP">WEBP (.webp)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Quality Slider -->
+                                <div class="control-item">
+                                    <label for="quality-slider">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path
+                                                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                                            <circle cx="12" cy="12" r="4" />
+                                        </svg>
+                                        Compression Quality
+                                    </label>
+                                    <div class="slider-container">
+                                        <input type="range" id="quality-slider" min="10" max="100" step="5" value="85">
+                                        <span id="quality-value" class="value-badge">85%</span>
+                                    </div>
+                                </div>
+
+                                <!-- Target Size -->
+                                <div class="control-item">
+                                    <label for="target-size">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10" />
+                                            <circle cx="12" cy="12" r="6" />
+                                            <circle cx="12" cy="12" r="2" />
+                                        </svg>
+                                        Target File Size (Optional)
+                                    </label>
+                                    <div class="size-input-group">
+                                        <input type="number" id="target-size" placeholder="e.g., 500" min="1"
+                                            class="number-input">
+                                        <select id="size-unit" class="unit-select">
+                                            <option value="KB">KB</option>
+                                            <option value="MB">MB</option>
+                                        </select>
+                                    </div>
+                                    <small class="help-text">Leave empty to use quality % only</small>
+                                </div>
+
+                                <button class="btn btn-primary" onclick="applyCompression()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path
+                                            d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                                        <path d="M5 3v4" />
+                                        <path d="M19 17v4" />
+                                        <path d="M3 5h4" />
+                                        <path d="M17 19h4" />
+                                    </svg>
+                                    Apply Compression
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Basic Corrections Card -->
+                        <div class="tool-card hidden" id="tool-corrections" data-tool="corrections">
+                            <div class="card-header">
+                                <h3><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+                                        <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+                                        <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+                                        <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+                                        <path
+                                            d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z" />
+                                    </svg> Basic Corrections</h3>
+                                <p class="card-subtitle">Adjust image properties in real-time</p>
+                            </div>
+                            <div class="card-body">
+                                <!-- Brightness -->
+                                <div class="control-item">
+                                    <label for="brightness-slider">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="4" />
+                                            <path d="M12 2v2" />
+                                            <path d="M12 20v2" />
+                                            <path d="m4.93 4.93 1.41 1.41" />
+                                            <path d="m17.66 17.66 1.41 1.41" />
+                                            <path d="M2 12h2" />
+                                            <path d="M20 12h2" />
+                                            <path d="m6.34 17.66-1.41 1.41" />
+                                            <path d="m19.07 4.93-1.41 1.41" />
+                                        </svg>
+                                        Brightness
+                                    </label>
+                                    <div class="slider-container">
+                                        <input type="range" id="brightness-slider" min="0.5" max="2" step="0.1"
+                                            value="1">
+                                        <span id="brightness-value" class="value-badge">1.0x</span>
+                                    </div>
+                                </div>
+
+                                <!-- Contrast -->
+                                <div class="control-item">
+                                    <label for="contrast-slider">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10" />
+                                            <path d="M12 18a6 6 0 0 0 0-12v12z" />
+                                        </svg>
+                                        Contrast
+                                    </label>
+                                    <div class="slider-container">
+                                        <input type="range" id="contrast-slider" min="0.5" max="2" step="0.1" value="1">
+                                        <span id="contrast-value" class="value-badge">1.0x</span>
+                                    </div>
+                                </div>
+
+                                <!-- Saturation -->
+                                <div class="control-item">
+                                    <label for="saturation-slider">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10" />
+                                            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+                                            <path d="M2 12h20" />
+                                        </svg>
+                                        Saturation
+                                    </label>
+                                    <div class="slider-container">
+                                        <input type="range" id="saturation-slider" min="0" max="2" step="0.1" value="1">
+                                        <span id="saturation-value" class="value-badge">1.0x</span>
+                                    </div>
+                                </div>
+
+                                <!-- Sharpness -->
+                                <div class="control-item">
+                                    <label for="sharpness-slider">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <polygon
+                                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                        </svg>
+                                        Sharpness
+                                    </label>
+                                    <div class="slider-container">
+                                        <input type="range" id="sharpness-slider" min="0" max="2" step="0.1" value="1">
+                                        <span id="sharpness-value" class="value-badge">1.0x</span>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-reset" onclick="resetAdjustments()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                        <path d="M3 3v5h5" />
+                                    </svg>
+                                    Reset Adjustments
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Crop Tool Card -->
+                        <div class="tool-card hidden" id="tool-crop" data-tool="crop">
+                            <div class="card-header">
+                                <h3><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M6 2v14a2 2 0 0 0 2 2h14" />
+                                        <path d="M18 22V8a2 2 0 0 0-2-2H2" />
+                                    </svg> Crop Image</h3>
+                                <p class="card-subtitle">Trim and resize your image</p>
+                            </div>
+                            <div class="card-body">
+                                <!-- Aspect Ratio Presets -->
+                                <div class="control-item">
+                                    <label>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M21 3H3v7h18V3z" />
+                                            <path d="M21 14H3v7h18v-7z" />
+                                        </svg>
+                                        Quick Presets
+                                    </label>
+                                    <div class="preset-buttons">
+                                        <button class="btn-preset" onclick="setCropPreset('landscape')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <rect width="20" height="14" x="2" y="5" rx="2" />
+                                            </svg> Landscape<br><small>16:9</small>
+                                        </button>
+                                        <button class="btn-preset" onclick="setCropPreset('portrait')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <rect width="14" height="20" x="5" y="2" rx="2" />
+                                            </svg> Portrait<br><small>9:16</small>
+                                        </button>
+                                        <button class="btn-preset" onclick="setCropPreset('square')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <rect width="18" height="18" x="3" y="3" rx="2" />
+                                            </svg> Square<br><small>1:1</small>
+                                        </button>
+                                        <button class="btn-preset active" onclick="setCropPreset('custom')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                <path
+                                                    d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" />
+                                            </svg> Custom<br><small>Free</small>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Crop Coordinates -->
+                                <div class="control-item">
+                                    <label>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path
+                                                d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+                                            <circle cx="12" cy="10" r="3" />
+                                        </svg>
+                                        Position & Size
+                                    </label>
+                                    <div class="crop-inputs">
+                                        <div class="input-row">
+                                            <div class="input-field">
+                                                <label for="crop-x">X Position</label>
+                                                <input type="number" id="crop-x" value="0" min="0" class="number-input">
+                                            </div>
+                                            <div class="input-field">
+                                                <label for="crop-y">Y Position</label>
+                                                <input type="number" id="crop-y" value="0" min="0" class="number-input">
+                                            </div>
+                                        </div>
+                                        <div class="input-row">
+                                            <div class="input-field">
+                                                <label for="crop-width">Width</label>
+                                                <input type="number" id="crop-width" value="800" min="1"
+                                                    class="number-input">
+                                            </div>
+                                            <div class="input-field">
+                                                <label for="crop-height">Height</label>
+                                                <input type="number" id="crop-height" value="600" min="1"
+                                                    class="number-input">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Crop Actions -->
+                                <div class="button-group">
+                                    <button class="btn btn-secondary" onclick="toggleCropMode()">
+                                        <span id="crop-toggle-text"><svg xmlns="http://www.w3.org/2000/svg" width="16"
+                                                height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path
+                                                    d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                                                <circle cx="12" cy="12" r="3" />
+                                            </svg> Show Preview</span>
+                                    </button>
+                                    <button class="btn btn-primary" onclick="applyCrop()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M6 2v14a2 2 0 0 0 2 2h14" />
+                                            <path d="M18 22V8a2 2 0 0 0-2-2H2" />
+                                        </svg>
+                                        Apply Crop
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Loading Overlay -->
+            <div id="loading-overlay" class="loading-overlay hidden">
+                <div class="loader"></div>
+                <p>Processing...</p>
+            </div>
+
+            <!-- Notification -->
+            <div id="notification" class="notification hidden"></div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>
